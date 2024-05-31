@@ -11,7 +11,7 @@ first_time_accesses AS (
 daily_new_resource_count AS (
   SELECT access_date, USER_NAME, COUNT(*) AS count, COLLECT_SET(DATABASE_ID) AS database_ids, COLLECT_SET(DATABASE_NAME) AS database_names
   FROM first_time_accesses
-  GROUP BY access_date, USER_NAME -- Updated DATE to access_date
+  GROUP BY access_date, USER_NAME 
 ),
 stats AS (
   SELECT AVG(count) AS avg_count, STDDEV_POP(count) AS stddev_count
