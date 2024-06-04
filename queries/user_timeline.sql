@@ -3,7 +3,7 @@ SET s_time = ''; -- set start time
 SET e_time = CURRENT_TIMESTAMP;
 
 
---- This query will create a joined timeline of events from login_history and query_history, taken by a suspected user.
+--- This query creats a joined timeline of events from login_history and query_history, taken by a suspected user.
 
 
 WITH query_history AS (
