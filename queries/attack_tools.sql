@@ -1,7 +1,13 @@
-SELECT *,
-       LOWER(get_json_object(CLIENT_ENVIRONMENT, '$.APPLICATION')) AS APPLICATION,
-       LOWER(get_json_object(CLIENT_ENVIRONMENT, '$.OS')) AS OS
-FROM query_history
-WHERE LOWER(get_json_object(CLIENT_ENVIRONMENT, '$.APPLICATION')) LIKE '%rapeflake%'
-   OR (LOWER(get_json_object(CLIENT_ENVIRONMENT, '$.APPLICATION')) = 'dbeaver_dbeaverultimate'
-       AND LOWER(get_json_object(CLIENT_ENVIRONMENT, '$.OS')) = 'windows server 2022')
+SELECT
+    *
+FROM
+    snowflake.account_usage.sessions
+WHERE
+    PARSE_JSON(CLIENT_ENVIRONMENT):APPLICATION = 'rapeflake'
+    OR
+    (
+        PARSE_JSON(CLIENT_ENVIRONMENT):APPLICATION = 'DBeaver_DBeaverUltimate'
+        AND
+        PARSE_JSON(CLIENT_ENVIRONMENT):OS = 'Windows Server 2022'
+    )
+ORDER BY CREATED_ON;
