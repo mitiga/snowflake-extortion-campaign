@@ -1,17 +1,25 @@
-WITH filtered AS (
-    SELECT *,
-        LOWER(QUERY_TEXT) AS query_text_lower,
-        CASE 
-            WHEN LOWER(QUERY_TEXT) RLIKE 'copy into\\s+(s3://[^\\s]+|gcs://[^\\s]+|azure://[^\\s]+|https?://[^\\s]+)' THEN TRUE
-            ELSE FALSE
-        END AS url_found
-    FROM query_history
-    WHERE LOWER(QUERY_TEXT) LIKE '%copy into%'
+WITH copy_into AS (
+  SELECT
+    *,
+    LOWER(QUERY_TEXT) AS query_text_lower,
+  FROM
+    snowflake.account_usage.query_history
+  WHERE
+    LOWER(QUERY_TEXT) LIKE '%copy into%'
+    and QUERY_TYPE = 'UNLOAD'
 ),
 final AS (
-    SELECT *,
-        REGEXP_EXTRACT(query_text_lower, 'copy into\\s+(s3://[^\\s]+|gcs://[^\\s]+|azure://[^\\s]+|https?://[^\\s]+)', 1) AS extracted_url
-    FROM filtered
-    WHERE url_found = TRUE
+  SELECT
+    *,
+    REGEXP_SUBSTR (
+      query_text_lower,
+      '(s3://[^\\s]+|gcs://[^\\s]+|azure://[^\\s]+)', 1) AS extracted_url
+  FROM
+    copy_into
+  WHERE
+    extracted_url IS NOT NULL
 )
-SELECT * FROM final
+SELECT
+  *
+FROM
+  final;
