@@ -1,39 +1,42 @@
-%sql
-WITH query_history_enhanced AS (
-  SELECT *, TO_DATE(START_TIME) AS unique_date 
-  FROM query_history
+WITH sessions_enriched AS (
+SELECT *, 
+        TO_DATE(CREATED_ON) AS unique_date,
+        PARSE_JSON(client_environment) :APPLICATION :: STRING AS client_application,
+FROM
+    snowflake.account_usage.sessions
+WHERE client_application is not null 
 ),
 
-client_app_total_count AS (
-  SELECT USER_NAME8, CLIENT_APPLICATION_ID, COUNT(*) AS client_app_total_count
-  FROM query_history_enhanced
-  GROUP BY USER_NAME8, CLIENT_APPLICATION_ID
+app_total_count AS (
+  SELECT USER_NAME,client_application, COUNT(*) AS app_total_count
+  FROM sessions_enriched
+  GROUP BY USER_NAME,client_application
 ),
 
-total_queries AS (
-  SELECT USER_NAME8, COUNT(*) AS total_queries
-  FROM query_history_enhanced
-  GROUP BY USER_NAME8
+total_usage AS (
+  SELECT USER_NAME, COUNT(*) AS total_usage
+  FROM sessions_enriched
+  GROUP BY USER_NAME
 ),
 
 final_counts AS (
-  SELECT c.USER_NAME8, c.CLIENT_APPLICATION_ID, c.client_app_total_count, t.total_queries,
-         (c.client_app_total_count / t.total_queries) * 100 AS client_app_usage_pct
-  FROM client_app_total_count c
-  JOIN total_queries t ON c.USER_NAME8 = t.USER_NAME8
+  SELECT c.USER_NAME, c.client_application ,c.app_total_count, t.total_usage,
+         (c.app_total_count / t.total_usage) * 100 AS app_usage_pct
+  FROM app_total_count c
+  JOIN total_usage t ON c.USER_NAME = t.USER_NAME
 ),
 
 anomaly AS (
   SELECT *
   FROM final_counts
-  WHERE client_app_usage_pct < 5
+  WHERE app_usage_pct < 5
 ),
 
 anomaly_apps AS (
-  SELECT q.USER_NAME8, q.CLIENT_APPLICATION_ID, COLLECT_SET(q.unique_date) AS anomalous_dates, AVG(a.client_app_usage_pct) AS avg_usage_pct
-  FROM query_history_enhanced q
-  JOIN anomaly a ON q.USER_NAME8 = a.USER_NAME8 AND q.CLIENT_APPLICATION_ID = a.CLIENT_APPLICATION_ID
-  GROUP BY q.USER_NAME8, q.CLIENT_APPLICATION_ID
+  SELECT q.USER_NAME, q.client_application,ARRAY_AGG(DISTINCT q.unique_date) AS anomalous_dates, AVG(a.app_usage_pct) AS avg_usage_pct
+  FROM sessions_enriched q
+  JOIN anomaly a ON q.USER_NAME = a.USER_NAME AND q.client_application = a.client_application 
+  GROUP BY q.USER_NAME, q.client_application
 )
 
 SELECT *
