@@ -1,0 +1,9 @@
+Rapeflake
+DBeaver_DBeaverUltimate
+Snowsight Al
+Go 1.1.5
+JDBC 3.13.30
+JDBC 3.15.0
+SnowSQL 1.2.32
+PythonConnector 2.7.6
+Snowflake UI 
