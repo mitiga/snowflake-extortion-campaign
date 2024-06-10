@@ -7,6 +7,10 @@ Here is our link to the blog: https://www.mitiga.io/blog/tactical-guide-to-threa
 
 The `ip_addresses.txt` file includes a list of IP addresses known to be associated with the threat group. These IP addresses are updated regularly to provide the latest information for threat detection and mitigation.
 
+## applications.txt
+
+The `applications.txt` file includes a list of applications known to be associated with the threat group. These applications are updated regularly to provide the latest information for threat detection and mitigation.
+
 ## Queries
 
 The `queries` directory contains SQL (SparkSQL) query files designed to detect anomaly and suspicious activity in query and login logs. These queries are carefully crafted to identify potential security threats and unusual behavior within your systems.
